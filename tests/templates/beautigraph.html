@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="{{url_for('static', filename='nv.d3.css')}}" rel="stylesheet" type="text/css">
+
+    <script src="{{url_for('static', filename='d3.min.js')}}" charset="utf-8"></script>
+    <script src="{{url_for('static', filename='nv.d3.min.js')}}"></script>
+    <script src= "{{url_for('static', filename='stream_layers.js')}}" ></script>
+    <style>
+        text {
+            font: 12px sans-serif;
+        }
+        svg {
+            display: block;
+        }
+        html, body, #chart, svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div id="chart" class='with-3d-shadow with-transitions'>
+    <svg></svg>
+</div>
+
+<script>
+var $_GET = {};
+if(document.location.toString().indexOf('?') !== -1) {
+    var query = document.location
+                   .toString()
+                   // get the query string
+                   .replace(/^.*?\?/, '')
+                   // and remove any existing hash string (thanks, @vrijdenker)
+                   .replace(/#.*$/, '')
+                   .split('&');
+
+    for(var i=0, l=query.length; i<l; i++) {
+       var aux = decodeURIComponent(query[i]).split('=');
+       $_GET[aux[0]] = aux[1];
+    }
+}
+//get the 'index' query parameter
+
+
+var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+var totdata,data1,data2;
+var rest=[];
+rest[0]=$_GET["rest1"];
+rest[1]=$_GET["rest2"];
+var feature=$_GET["feature"];
+var grpby=$_GET["grpby"];
+
+  // Get the data
+
+  d3.json("/data?grpby="+grpby, function(error, totdata1) {
+    totdata=totdata1;
+    for (var key1 in totdata) {
+      for (var key2 in totdata[key1]) {
+          tmpd=totdata[key1][key2];
+
+          tmpd.forEach(function(d) {
+              d.timestamp = parseDate(d.timestamp);
+
+          });
+
+      }
+
+    }
+data1=totdata[rest[0]][feature];
+data2=totdata[rest[1]][feature];
+console.log(data1);
+});
+
+
+
+
+    nv.addGraph(function() {
+        var chart = nv.models.lineWithFocusChart()
+        .forceY([-1,1]);
+
+
+
+      //   .tooltipContent(function(key, y, e, graph) {
+      //     console.log(y);
+      //   //
+      //   //  var data =graph.series.values[y-1];
+      //   //  console.log(data);
+      //   //  return  '<p> Text1: ' +  data.Data3 + '</p>'
+      //   //      + '<p> Text2: ' +  data.Data4 + '</p>'
+      //   //      + '<p> Text3: ' +  data.Data5 + '</p>'
+      //  })
+
+        // chart.brushExtent([50,70]);
+        // chart.xAxis.tickFormat(d3.fomrmat(',f')).axisLabel("Stream - 3,128,.1");
+        // chart.x2Axis.tickFormat(d3.format(',f'));
+
+       chart.yAxis.tickFormat(d3.format('.2f'));
+        //console.log(getData(data1,data2));
+        d3.select('#chart svg')
+             .datum(getData())
+             .call(chart);
+
+
+             chart.tooltipContent(function(key, y, e, graph) {
+             //  console.log(key.point.x);//time
+             //  console.log(key.point.y);
+               return genHoverHtml(String(rest[key.point.series]),key.point.x,24)
+             });
+
+
+
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
+
+
+    console.log(data1);
+
+    function getData() {
+      var r1 = [],r2 = [];
+
+      data1.forEach(function(d) {
+          r1.push({x: d.timestamp, y: d.score});
+      });
+
+      data2.forEach(function(d) {
+          r2.push({x: d.timestamp, y: d.score});
+      });
+
+
+      //Line chart data should be sent as an array of series objects.
+      return [
+        {
+          values: r1,      //values - represents the array of {x,y} data points
+          key: 'Restaurant 1', //key  - the name of the series.
+          color: '#ff7f0e'  //color - optional: choose your own line color.
+        },
+        {
+          values: r2,
+          key: 'Restaurant 2',
+          color: '#2ca02c'
+        }
+      ];
+    }
+
+
+
+    function myVal(restaurant,feature,timestamp,windowt) {
+          var val=0.0;
+          var cnt=0;
+          var start = d3.time.hour.offset(timestamp, -windowt);
+          var end = d3.time.hour.offset(timestamp, windowt);
+
+          var stringD="";
+
+         totdata[restaurant][feature].forEach(function(d)
+         {
+           if( d.timestamp >= start && d.timestamp <= end){
+              val+=d.score;
+              cnt+=1;
+              stringD+=d.text+" -- ";
+            }
+         });
+
+         if(cnt!=0)
+              return [val/cnt,stringD];
+        else
+              return [0,""];
+      }
+
+      function genHoverHtml(restaurant,timestamp,windowt)
+      {
+        console.log(totdata);
+        var htmlString="";
+
+        for (key in totdata[restaurant]){
+          var val=myVal(restaurant,key,timestamp,windowt);
+          var valr=val[0];
+          var stringD=val[1];
+
+          var url="{{ url_for('showText')}}?stringData="+stringD;
+          var keylink='<a href='+'"'+url+'" target="_blank">'+key+"</a>";
+          htmlString+=keylink+" : "+valr+"<br\/>";
+        }
+        return htmlString;
+      }
+
+
+
+
+    function testData() {
+        return stream_layers(3,128,.1).map(function(data, i) {
+            return {
+                key: 'Stream' + i,
+                area: i === 1,
+                values: data
+            };
+        });
+    }
+</script>
+</body>
+</html>

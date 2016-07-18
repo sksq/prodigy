@@ -1,0 +1,24 @@
+<form action="bt1" method="get">
+  <h2>Group by date:</h2>
+  <br>
+<select name="grpby">
+    <option value="0" selected="selected">No group</option>
+    <option value="1">One day</option>
+    <option value="7">One week</option>
+    <option value="30">One month</option>
+</select>
+<br>Source: 
+<input type="checkbox" value="">Zomato
+<input type="checkbox" value="" disabled="">Google Maps
+<input type="checkbox" value="" disabled="">Twitter
+<input type="text" name="rest" value="truffles" hidden>
+<br>Feature: 
+<select name="feature">
+    <option value="overall" selected="selected">Overall</option>
+    <option value="food">Food</option>
+    <option value="service">Service</option>
+    <option value="ambiance">Ambiance</option>
+    <option value="value">Value</option>
+</select>
+<input type="submit" value="Submit">
+</form>

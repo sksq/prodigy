@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- <link href="../bootstrap/css/bootstrap.css" rel="stylesheet"> -->
+
+    <!-- <link href="=bootstrap.css" rel="stylesheet"> -->
+    <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script> -->
+
+    <link href="bootstrap.css" rel="stylesheet" id="bootstrap-css">
+    <link href="bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <style type="text/css">
+      /*  bhoechie tab */
+div.bhoechie-tab-container{
+  z-index: 12;
+  background-color: #ffffff;
+  padding: 0 !important;
+  border-radius: 2px;
+  -moz-border-radius: 2px;
+  border:1px solid #ddd;
+  margin-top: 0px;
+  margin-left: 700px;
+  -webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+  box-shadow: 0 6px 12px rgba(0,0,0,.175);
+  -moz-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+  background-clip: padding-box;
+  opacity: 0.97;
+  filter: alpha(opacity=97);
+}
+div.bhoechie-tab-menu{
+  padding-right: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+}
+div.bhoechie-tab-menu div.list-group{
+  margin-bottom: 0;
+}
+div.bhoechie-tab-menu div.list-group>a{
+  margin-bottom: 0;
+}
+div.bhoechie-tab-menu div.list-group>a .glyphicon,
+div.bhoechie-tab-menu div.list-group>a .fa {
+  color: #5A55A3;
+}
+div.bhoechie-tab-menu div.list-group>a:first-child{
+  border-top-right-radius: 0;
+  -moz-border-top-right-radius: 0;
+}
+div.bhoechie-tab-menu div.list-group>a:last-child{
+  border-bottom-right-radius: 0;
+  -moz-border-bottom-right-radius: 0;
+}
+div.bhoechie-tab-menu div.list-group>a.active,
+div.bhoechie-tab-menu div.list-group>a.active .glyphicon,
+div.bhoechie-tab-menu div.list-group>a.active .fa{
+  background-color: #5A55A3;
+  background-image: #5A55A3;
+  color: #ffffff;
+}
+div.bhoechie-tab-menu div.list-group>a.active:after{
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-top: -13px;
+  border-left: 0;
+  border-bottom: 5px solid transparent;
+  border-top: 5px solid transparent;
+  border-left: 5px solid #5A55A3;
+}
+
+div.bhoechie-tab-content{
+  background-color: #ffffff;
+  /* border: 1px solid #eeeeee; */
+  padding-left: 5px;
+  padding-top: 5px;
+}
+
+div.bhoechie-tab div.bhoechie-tab-content:not(.active){
+  display: none;
+}
+    </style>
+
+
+    <script src="jquery-1.10.2.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script type="text/javascript">
+        window.alert = function(){};
+        var defaultCSS = document.getElementById('bootstrap-css');
+        function changeCSS(css){
+            if(css) $('head > link').filter(':first').replaceWith('<link rel="stylesheet" href="'+ css +'" type="text/css" />');
+            else $('head > link').filter(':first').replaceWith(defaultCSS);
+        }
+        $( document ).ready(function() {
+          var iframe_height = parseInt($('html').height());
+          window.parent.postMessage( iframe_height, 'http://bootsnipp.com');
+        });
+    </script>
+
+</head>
+<body>
+<script language="JavaScript">
+<!--
+function autoResize(id){
+    var newheight;
+    var newwidth;
+
+    if(document.getElementById){
+        newheight = document.getElementById(id).contentWindow.document .body.scrollHeight;
+        newwidth = document.getElementById(id).contentWindow.document .body.scrollWidth;
+    }
+
+    document.getElementById(id).height = (newheight) + "px";
+    document.getElementById(id).width = (newwidth) + "px";
+}
+//-->
+</script>
+<iframe src="http://localhost:5000/bt1?rest=Truffles&feature=Food&grpby=1" width="100%" height="400px" id="iframe1" marginheight="0" frameborder="0" onLoad="autoResize('iframe1');"></iframe>
+<form>
+  Group by date:
+<select name="grpby" id="grpby">
+    <option value="0" selected="selected">No group</option>
+    <option value="1">One day</option>
+    <option value="2">One week</option>
+    <option value="3">One month</option>
+</select>
+<br>Source:
+<input type="checkbox" value="">Zomato
+<input type="checkbox" value="" disabled="">Google Maps
+<input type="checkbox" value="" disabled="">Twitter
+<input type="text" name="rest" id="rest" value="Truffles" hidden>
+<br>Feature:
+<select name="feature" id="feature">
+    <option value="Overall" selected="selected">Overall</option>
+    <option value="Food">Food</option>
+    <option value="Service">Service</option>
+    <option value="Ambiance">Ambiance</option>
+    <option value="Value">Value</option>
+</select>
+<input type="submit" value="Submit" onclick="submitCheck()">
+</form>
+<script>
+  function submitCheck()
+  {
+    var buildUrl= "http://localhost:5000/bt1?rest="+document.getElementById("rest")+"&grpby="+document.getElementById("grpby")+"&feature="+document.getElementById("feature");
+    document.getElementById("iframe1").src=buildUrl;
+    return false;
+  }
+</script>
+
+<!-- <form action="http://localhost:5000/bt1" method="get">
+  Group by date:
+<select name="grpby">
+    <option value="0" selected="selected">No group</option>
+    <option value="1">One day</option>
+    <option value="7">One week</option>
+    <option value="30">One month</option>
+</select>
+<br>Source:
+<input type="checkbox" value="">Zomato
+<input type="checkbox" value="" disabled="">Google Maps
+<input type="checkbox" value="" disabled="">Twitter
+<input type="text" name="rest" value="truffles" hidden>
+<br>Feature:
+<select name="feature">
+    <option value="overall" selected="selected">Overall</option>
+    <option value="food">Food</option>
+    <option value="service">Service</option>
+    <option value="ambiance">Ambiance</option>
+    <option value="value">Value</option>
+</select>
+<input type="submit" value="Submit">
+</form> -->
+<script src="bootstrap.min.js"></script>
+</body>
+</html>

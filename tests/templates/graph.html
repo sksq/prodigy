@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+body { font: 12px Arial;}
+
+path {
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: left;
+    width: 200px;
+    height: 200px;
+    padding: 2px;
+    font: 20px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+}
+
+</style>
+<body>
+
+<!-- load the d3.js library -->
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> -->
+
+<script>
+
+// Set the dimensions of the canvas / graph
+var margin = {top: 30, right: 20, bottom: 30, left: 50},
+    width = 600 - margin.left - margin.right,
+    height = 270 - margin.top - margin.bottom;
+
+// Parse the date / time
+var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+var formatTime = d3.time.format("%e %B");
+var parseTimeHour = d3.time.format("%H").parse;
+var longString="";
+
+// Set the ranges
+var x = d3.time.scale().range([0, width]);
+var y = d3.scale.linear().range([height, 0]);
+
+// Define the axes
+var xAxis = d3.svg.axis().scale(x)
+    .orient("bottom").ticks(5);
+
+var yAxis = d3.svg.axis().scale(y)
+    .orient("left").ticks(5);
+
+// Define the line
+var valueline = d3.svg.line()
+    .x(function(d) { return x(d.timestamp); })
+    .y(function(d) { return y(d.score); });
+
+// Define the div for the tooltip
+var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+// Adds the svg canvas
+var svg = d3.select("body")
+    .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+
+
+function myVal(restaurant,feature,timestamp,windowt,totdata) {
+      var val=0.0;
+      var cnt=0;
+      var start = d3.time.hour.offset(timestamp, -windowt);
+      var end = d3.time.hour.offset(timestamp, windowt);
+
+      var stringD="";
+
+     totdata[restaurant][feature].forEach(function(d)
+     {
+       if( d.timestamp >= start && d.timestamp <= end){
+          val+=d.score;
+          cnt+=1;
+          stringD+=d.text+" -- ";
+        }
+     });
+
+     if(cnt!=0)
+          return [val/cnt,stringD];
+    else
+          return [0,""];
+  }
+
+  function genHoverHtml(restaurant,timestamp,windowt,totdata)
+  {
+    var htmlString="";
+
+    for (key in totdata[restaurant]){
+      var val=myVal(restaurant,key,timestamp,windowt,totdata);
+      var valr=val[0]
+      var stringD=val[1]
+      var url="{{ url_for('showText')}}?stringData="+stringD
+      var keylink='<a href='+'"'+url+'" target="_blank">'+key+"</a>";
+      htmlString+=keylink+" : "+valr+"<br\/>";
+    }
+    return htmlString;
+  }
+
+var totdata,data;
+function buildGraph(restaurant,feature)
+{
+  // Get the data
+  d3.json("/data", function(error, totdata) {
+
+    for (var key1 in totdata) {
+      for (var key2 in totdata[key1]) {
+          tmpd=totdata[key1][key2];
+
+          tmpd.forEach(function(d) {
+              d.timestamp = parseDate(d.timestamp);
+
+          });
+
+      }
+
+    }
+
+    data=totdata[restaurant][feature];
+    console.log(data);
+      // Scale the range of the data
+      x.domain(d3.extent(data, function(d) { return d.timestamp; }));
+      y.domain([0, d3.max(data, function(d) { return d.score; })]);
+
+      // Add the valueline path.
+      svg.append("path")
+          .attr("class", "line")
+          .attr("d", valueline(data));
+
+      // Add the scatterplot
+      svg.selectAll("dot")
+          .data(data)
+      .enter().append("circle")
+          .attr("r", 5)
+          .attr("cx", function(d) { return x(d.timestamp); })
+          .attr("cy", function(d) { return y(d.score); })
+          .on("click", function(d) {
+
+              div.transition()
+                  .style("opacity", .9);
+              div .html(genHoverHtml(restaurant,d.timestamp,24,totdata))
+                  .style("left", (d3.event.pageX) + "px")
+                  .style("top", (d3.event.pageY - 40) + "px");
+
+
+              });
+
+      // Add the X Axis
+      svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(xAxis);
+
+      // Add the Y Axis
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis);
+
+  });
+
+
+
+}
+buildGraph("Truffles","Food");
+// var hoverdiv= document.getElementsByTagName("body");
+// console.log(hoverdiv);
+// hoverdiv[0].addEventListener("click", func1, false);
+// function func1()
+// {
+//   document.getElementsByClassName("tooltip")[0].setAttribute("style", "opacity:0;");
+// }
+</script>
+</body>
